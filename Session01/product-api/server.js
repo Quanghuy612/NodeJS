@@ -9,15 +9,14 @@ let productId = products.length + 1;
 
 const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");
+
   const urlParts = req.url.split("/");
-  const id = parseInt(urlParts[2]);
+  const id = parseInt(urlParts[2]); // Extract the product ID from the URL
 
   if (req.method === "GET" && req.url === "/products") {
-    // Lấy danh sách sản phẩm
     res.writeHead(200);
     res.end(JSON.stringify(products));
   } else if (req.method === "POST" && req.url === "/products") {
-    // Thêm sản phẩm mới
     let body = "";
     req.on("data", (chunk) => (body += chunk.toString()));
     req.on("end", () => {
@@ -25,49 +24,39 @@ const server = http.createServer((req, res) => {
         const product = JSON.parse(body);
         if (!product.name || !product.price) {
           res.writeHead(400);
-          res.end(
-            JSON.stringify({
-              error: "Dữ liệu không hợp lệ. Vui lòng gửi theo định dạng:",
-              example: { name: "Sản phẩm mẫu", price: 100000 },
-            })
-          );
+          res.end(JSON.stringify({ error: "Dữ liệu không hợp lệ." }));
           return;
         }
-        product.id = productId++; // Gán ID tự động
-        products.push(product); // Thêm vào danh sách
+        product.id = productId++;
+        products.push(product);
         res.writeHead(201);
         res.end(
           JSON.stringify({ message: "Sản phẩm đã thêm!", data: product })
         );
       } catch (error) {
         res.writeHead(400);
-        res.end(
-          JSON.stringify({
-            error: "Dữ liệu JSON không hợp lệ. Vui lòng gửi theo định dạng:",
-            example: { name: "Sản phẩm mẫu", price: 100000 },
-          })
-        );
+        res.end(JSON.stringify({ error: "Dữ liệu JSON không hợp lệ." }));
       }
     });
-  } else if (req.method === "PUT" && req.url === "/products") {
+  } else if (req.method === "PUT" && urlParts[1] === "products" && id) {
     let body = "";
     req.on("data", (chunk) => (body += chunk.toString()));
     req.on("end", () => {
       try {
         const updateData = JSON.parse(body);
-        const productIndex = products.findIndex((p) => p.id === updateData.id);
+        const productIndex = products.findIndex((p) => p.id === id);
 
         if (productIndex === -1) {
           res.writeHead(404);
           res.end(JSON.stringify({ error: "Sản phẩm không tồn tại" }));
           return;
         }
-
         products[productIndex] = { ...products[productIndex], ...updateData };
         res.writeHead(200);
         res.end(
           JSON.stringify({
             message: "Sản phẩm đã cập nhật!",
+            data: products[productIndex],
           })
         );
       } catch (error) {
@@ -75,15 +64,14 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: "Dữ liệu JSON không hợp lệ" }));
       }
     });
-  } else if (req.method === "DELETE" && req.url === "/products") {
-    // Xóa sản phẩm theo ID
+  } else if (req.method === "DELETE" && urlParts[1] === "products" && id) {
     const productIndex = products.findIndex((p) => p.id === id);
     if (productIndex === -1) {
       res.writeHead(404);
       res.end(JSON.stringify({ error: "Sản phẩm không tồn tại" }));
       return;
     }
-    products.splice(productIndex, 1); // Xóa sản phẩm
+    products.splice(productIndex, 1);
     res.writeHead(200);
     res.end(JSON.stringify({ message: "Sản phẩm đã bị xóa" }));
   } else {
