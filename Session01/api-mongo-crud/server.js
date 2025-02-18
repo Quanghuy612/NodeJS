@@ -25,21 +25,21 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model("Product", productSchema);
 
 app.get("/products", async (req, res) => {
-  const products = await Product.find(); // Lấy toàn bộ sản phẩm từ database;
+  const products = await Product.find();
   res.json(products);
 });
 
 app.get("/products/:id", async (req, res) => {
-  const product = await Product.findById(req.params.id); // Tìm sản phẩm theo ID
+  const product = await Product.findById(req.params.id);
   if (!product)
     return res.status(404).json({ message: "Sản phẩm không tồn tại" });
   res.json(product);
 });
 
 app.post("/products", async (req, res) => {
-  const newProduct = new Product(req.body); // Tạo sản phẩm mới từ dữ liệu yêu cầu
+  const newProduct = new Product(req.body);
   await newProduct.save();
-  res.status(201).json(newProduct);
+  res.status(201).json({ message: "Add sản phẩm thành công!", newProduct });
 });
 
 app.put("/products/:id", async (req, res) => {
@@ -48,7 +48,7 @@ app.put("/products/:id", async (req, res) => {
     req.body,
     { new: true }
   );
-  res.json(updatedProduct);
+  res.json({ message: "Cập nhật sản phẩm thành công!", updatedProduct });
 });
 
 app.delete("/products/:id", async (req, res) => {
